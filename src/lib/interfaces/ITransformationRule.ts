@@ -1,5 +1,5 @@
 export interface ITransformationRule {
-  id: number;
+  id?: number;
   name: string;
   operation: string;
   column: string;

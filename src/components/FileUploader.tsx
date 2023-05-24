@@ -1,4 +1,4 @@
-import { FC, useContext, useState } from "react";
+import { FC, useContext, useEffect, useState } from "react";
 import { Box, Typography, Button, makeStyles } from "@material-ui/core";
 import { useMutation } from "react-query";
 import { fileHandler } from "../services/fileHandler";
@@ -53,7 +53,8 @@ type Props = {};
 const FileUploader: FC<Props> = (props) => {
   const [selectedFile, setSelectedFile] = useState<File | undefined>(undefined);
 
-  const { data, setData, TransformationRulesData } = useContext(AppContext);
+  const { data, setData, TransformationRulesData, setTransformationRulesData } =
+    useContext(AppContext);
 
   const classes = useStyles();
 
@@ -98,9 +99,6 @@ const FileUploader: FC<Props> = (props) => {
 
   return (
     <Box className={classes.container}>
-      <Typography variant="h6" className={classes.title}>
-        File Uploader
-      </Typography>
       <div className={classes.dropArea}>
         {selectedFile ? (
           <>
@@ -146,7 +144,7 @@ const FileUploader: FC<Props> = (props) => {
       <Box style={{ width: "100%" }}>
         <Box
           style={{
-            width: "20%",
+            width: "100%",
             padding: "10px",
             backgroundColor: "#f5f5f5",
           }}
@@ -165,41 +163,48 @@ const FileUploader: FC<Props> = (props) => {
               Add New Transformation Rule
             </Button>
           </Link>
-
-          {TransformationRulesData &&
-            TransformationRulesData.length > 0 &&
-            TransformationRulesData.map((item: ITransformationRule) => (
-              <ListItem
-                key={item.name}
-                button
-                style={{
-                  marginBottom: "10px",
-                  padding: "8px",
-                  backgroundColor: "#fff",
-                  borderRadius: "4px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
-                }}
-              >
-                <Box
+          <Box
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gridGap: "10px",
+            }}
+          >
+            {TransformationRulesData &&
+              TransformationRulesData.length > 0 &&
+              TransformationRulesData.map((item: ITransformationRule) => (
+                <ListItem
+                  key={item.name}
+                  button
                   style={{
+                    marginBottom: "10px",
+                    padding: "8px",
+                    backgroundColor: "#fff",
+                    borderRadius: "4px",
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    width: "100%",
-                  }}
-                  draggable
-                  onDragStart={(e: React.DragEvent<HTMLLIElement>) => {
-                    handleDragStart(e, item);
+                    boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
                   }}
                 >
-                  <ListItemText primary={item.name} />
-                  <DragIndicatorIcon />
-                </Box>
-              </ListItem>
-            ))}
+                  <Box
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      width: "100%",
+                    }}
+                    draggable
+                    onDragStart={(e: React.DragEvent<HTMLLIElement>) => {
+                      handleDragStart(e, item);
+                    }}
+                  >
+                    <ListItemText primary={item.name} />
+                    <DragIndicatorIcon />
+                  </Box>
+                </ListItem>
+              ))}
+          </Box>
         </Box>
       </Box>
 
