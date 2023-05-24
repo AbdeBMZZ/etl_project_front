@@ -1,6 +1,6 @@
 import { FC, useContext, useEffect, useState } from "react";
 import { Box, Typography, Button, makeStyles } from "@material-ui/core";
-import { useMutation } from "react-query";
+import { UseQueryResult, useMutation, useQuery } from "react-query";
 import { fileHandler } from "../services/fileHandler";
 import DataTable from "./DataTable";
 import { AppContext } from "../context/AppContext";
@@ -56,6 +56,21 @@ const FileUploader: FC<Props> = (props) => {
   const { data, setData, TransformationRulesData, setTransformationRulesData } =
     useContext(AppContext);
 
+  const {
+    status: rulesStatus,
+    error: rulesError,
+    data: rulesData,
+  }: UseQueryResult<ITransformationRule[], Error> = useQuery<
+    ITransformationRule[],
+    Error
+  >("api/transformation-rules");
+
+  useEffect(() => {
+    if (rulesStatus === "success") {
+      setTransformationRulesData(rulesData);
+    }
+  }, [rulesStatus]);
+
   const classes = useStyles();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,7 +105,9 @@ const FileUploader: FC<Props> = (props) => {
     console.log(droppedItem);
     console.log("file id ", data.csv_file_ID);
 
-    applyRule(droppedItem.id, data.csv_file_ID);
+    droppedItem.id && data.csv_file_ID
+      ? applyRule(droppedItem.id, data.csv_file_ID)
+      : applyRule(droppedItem.id, data.transformed_file_ID);
   };
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {

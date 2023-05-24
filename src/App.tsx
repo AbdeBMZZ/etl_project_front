@@ -14,6 +14,7 @@ import TransformationRules from "./components/TransformationRules";
 import { AppContext } from "./context/AppContext";
 import { ITableData } from "./lib/interfaces/ITableData";
 import { ITransformationRule } from "./lib/interfaces/ITransformationRule";
+import Analytics from "./components/Analytics";
 
 const App: React.FC = () => {
   const [data, setData] = React.useState<ITableData>({
@@ -21,6 +22,7 @@ const App: React.FC = () => {
     rows: [],
     message: "",
     csv_file_ID: 0,
+    transformed_file_ID: 0,
   });
 
   const [transformedData, setTransformedData] = React.useState<ITableData>({
@@ -39,7 +41,7 @@ const App: React.FC = () => {
       <Route path="/" element={<Nav />}>
         <Route path="csv-upload" element={<FileUploader />} />
         <Route path="transformation-rules" element={<TransformationRules />} />
-        <Route path="analytics" element={<Typography>Analytics</Typography>} />
+        <Route path="analytics" element={<Analytics />} />
       </Route>
     )
   );

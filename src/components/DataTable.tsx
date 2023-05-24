@@ -14,6 +14,7 @@ const useStyles = makeStyles((theme) => ({
   },
   headerCell: {
     fontWeight: "bold",
+    backgroundColor: "#f5f5f5",
   },
 }));
 

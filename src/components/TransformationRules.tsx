@@ -2,7 +2,7 @@ import { FC, useContext, useState } from "react";
 import { UseQueryResult, useMutation, useQuery } from "react-query";
 import { ITransformationRule } from "../lib/interfaces/ITransformationRule";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { FormHelperText } from "@mui/material";
+import { FormHelperText, InputLabel, MenuItem, Select } from "@mui/material";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -12,7 +12,6 @@ import {
   Typography,
   TextField,
   Button,
-  FormControl,
   Divider,
 } from "@mui/material";
 import { AppContext } from "../context/AppContext";
@@ -77,8 +76,11 @@ const TransformationRules: FC<Props> = (props: Props) => {
     rows: data && data.map((item: ITransformationRule) => Object.values(item)),
   };
 
-  const onSubmit: SubmitHandler<Inputs> = (data) => {
+  const onSubmit: SubmitHandler<Inputs> = async (data) => {
     handleAddRule.mutate(data);
+
+    //navigate to the rules page
+    window.location.href = "/transformation-rules";
   };
 
   return (
@@ -105,7 +107,13 @@ const TransformationRules: FC<Props> = (props: Props) => {
           alignItems: "flex-start",
         }}
       >
-        <Box>
+        <Box
+          style={{
+            borderRadius: "5px",
+            padding: "10px",
+            flex: 0.2,
+          }}
+        >
           <p
             style={{
               color: "#3f51b5",
@@ -120,10 +128,10 @@ const TransformationRules: FC<Props> = (props: Props) => {
               flexDirection: "column",
             }}
           >
+            <InputLabel>Name</InputLabel>
+
             <TextField
-              label="Name"
               {...register("name", { required: "This field is required" })}
-              variant="outlined"
               margin="normal"
               error={!!errors.name}
             />
@@ -131,8 +139,8 @@ const TransformationRules: FC<Props> = (props: Props) => {
               <FormHelperText error>{errors.name.message}</FormHelperText>
             )}
 
+            <InputLabel>Operation</InputLabel>
             <TextField
-              label="Operation"
               {...register("operation", { required: "This field is required" })}
               variant="outlined"
               margin="normal"
@@ -142,8 +150,9 @@ const TransformationRules: FC<Props> = (props: Props) => {
               <FormHelperText error>{errors.operation.message}</FormHelperText>
             )}
 
+            <InputLabel>Column</InputLabel>
+
             <TextField
-              label="Column"
               {...register("column", { required: "This field is required" })}
               variant="outlined"
               margin="normal"
@@ -153,19 +162,22 @@ const TransformationRules: FC<Props> = (props: Props) => {
               <FormHelperText error>{errors.column.message}</FormHelperText>
             )}
 
-            <TextField
-              label="Operator"
-              {...register("operator", { required: "This field is required" })}
-              variant="outlined"
-              margin="normal"
+            <InputLabel>Operator</InputLabel>
+            <Select
+              {...register("operator", { required: true })}
               error={!!errors.operator}
-            />
+            >
+              <MenuItem value="+">+</MenuItem>
+              <MenuItem value="-">-</MenuItem>
+              <MenuItem value="*">*</MenuItem>
+              <MenuItem value="/">/</MenuItem>
+              <MenuItem value="%">%</MenuItem>
+            </Select>
             {errors.operator && (
               <FormHelperText error>{errors.operator.message}</FormHelperText>
             )}
-
+            <InputLabel>Value</InputLabel>
             <TextField
-              label="Value"
               {...register("value", { required: "This field is required" })}
               variant="outlined"
               margin="normal"
