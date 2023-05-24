@@ -1,9 +1,15 @@
-import { FC, useState } from "react";
+import { FC, useContext, useState } from "react";
 import { Box, Typography, Button, makeStyles } from "@material-ui/core";
 import { useMutation } from "react-query";
 import { fileHandler } from "../services/fileHandler";
 import DataTable from "./DataTable";
-import { ITableData } from "../lib/interfaces/ITableData";
+import { AppContext } from "../context/AppContext";
+import { ITransformationRule } from "../lib/interfaces/ITransformationRule";
+import { ListItem, ListItemText } from "@mui/material";
+import { applyRuleTable } from "../services/rulesHandler";
+import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { Link } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -47,11 +53,7 @@ type Props = {};
 const FileUploader: FC<Props> = (props) => {
   const [selectedFile, setSelectedFile] = useState<File | undefined>(undefined);
 
-  const [data, setData] = useState<ITableData>({
-    headers: [],
-    rows: [],
-    message: "",
-  });
+  const { data, setData, TransformationRulesData } = useContext(AppContext);
 
   const classes = useStyles();
 
@@ -66,6 +68,33 @@ const FileUploader: FC<Props> = (props) => {
       setData(data);
     },
   });
+
+  const applyRule = async (rule_id: any, csv_file_id: any) => {
+    const data = await applyRuleTable(rule_id, csv_file_id);
+    setData(data);
+  };
+
+  const handleDragStart = (
+    event: React.DragEvent<HTMLLIElement>,
+    item: ITransformationRule
+  ) => {
+    console.log("drag start", item);
+    event.dataTransfer.setData("draggedItem", JSON.stringify(item));
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const item = event.dataTransfer.getData("draggedItem");
+    const droppedItem = JSON.parse(item);
+    console.log(droppedItem);
+    console.log("file id ", data.csv_file_ID);
+
+    applyRule(droppedItem.id, data.csv_file_ID);
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  };
 
   return (
     <Box className={classes.container}>
@@ -95,6 +124,7 @@ const FileUploader: FC<Props> = (props) => {
           <Typography variant="body1">Drag and drop a file here</Typography>
         )}
       </div>
+
       <input
         type="file"
         accept=".csv"
@@ -113,7 +143,95 @@ const FileUploader: FC<Props> = (props) => {
         </Button>
       </label>
 
-      {data.headers.length > 0 && <DataTable data={data} />}
+      <Box style={{ width: "100%" }}>
+        <Box
+          style={{
+            width: "20%",
+            padding: "10px",
+            backgroundColor: "#f5f5f5",
+          }}
+        >
+          <Link to="/transformation-rules" style={{ textDecoration: "none" }}>
+            <Button
+              variant="contained"
+              color="primary"
+              component="span"
+              className={classes.uploadButton}
+              startIcon={<AddCircleOutlineIcon />}
+              style={{
+                marginBottom: "10px",
+              }}
+            >
+              Add New Transformation Rule
+            </Button>
+          </Link>
+
+          {TransformationRulesData &&
+            TransformationRulesData.length > 0 &&
+            TransformationRulesData.map((item: ITransformationRule) => (
+              <ListItem
+                key={item.name}
+                button
+                style={{
+                  marginBottom: "10px",
+                  padding: "8px",
+                  backgroundColor: "#fff",
+                  borderRadius: "4px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
+                }}
+              >
+                <Box
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    width: "100%",
+                  }}
+                  draggable
+                  onDragStart={(e: React.DragEvent<HTMLLIElement>) => {
+                    handleDragStart(e, item);
+                  }}
+                >
+                  <ListItemText primary={item.name} />
+                  <DragIndicatorIcon />
+                </Box>
+              </ListItem>
+            ))}
+        </Box>
+      </Box>
+
+      {data && data.headers.length > 0 && (
+        <Box
+          style={{
+            width: "100%",
+          }}
+          droppable
+          onDragOver={(e: React.DragEvent<HTMLLIElement>) => {
+            handleDragOver(e);
+          }}
+          onDrop={(e: React.DragEvent<HTMLLIElement>) => {
+            handleDrop(e);
+          }}
+        >
+          <DataTable data={data} />
+          <Button
+            variant="contained"
+            color="primary"
+            component="span"
+            className={classes.uploadButton}
+            style={{
+              marginBottom: "10px",
+              marginTop: "10px",
+              marginLeft: "10px",
+            }}
+          >
+            Download CSV
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 };

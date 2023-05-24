@@ -1,16 +1,4 @@
 import React from "react";
-import { makeStyles, createStyles, Theme } from "@material-ui/core/styles";
-import {
-  AppBar,
-  Toolbar,
-  Drawer,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Box,
-} from "@material-ui/core";
-import { Home, Inbox, Mail } from "@material-ui/icons";
 
 import { Typography } from "@mui/material";
 
@@ -23,8 +11,29 @@ import {
 import FileUploader from "./components/FileUploader";
 import Nav from "./components/Nav";
 import TransformationRules from "./components/TransformationRules";
+import { AppContext } from "./context/AppContext";
+import { ITableData } from "./lib/interfaces/ITableData";
+import { ITransformationRule } from "./lib/interfaces/ITransformationRule";
 
 const App: React.FC = () => {
+  const [data, setData] = React.useState<ITableData>({
+    headers: [],
+    rows: [],
+    message: "",
+    csv_file_ID: 0,
+  });
+
+  const [transformedData, setTransformedData] = React.useState<ITableData>({
+    headers: [],
+    rows: [],
+    message: "",
+    csv_file_ID: 0,
+  });
+
+  const [TransformationRulesData, setTransformationRulesData] = React.useState<
+    ITransformationRule[]
+  >([]);
+
   const router = createBrowserRouter(
     createRoutesFromElements(
       <Route path="/" element={<Nav />}>
@@ -37,7 +46,18 @@ const App: React.FC = () => {
 
   return (
     <>
-      <RouterProvider router={router} />
+      <AppContext.Provider
+        value={{
+          data,
+          setData,
+          transformedData,
+          setTransformedData,
+          TransformationRulesData,
+          setTransformationRulesData,
+        }}
+      >
+        <RouterProvider router={router} />
+      </AppContext.Provider>
     </>
   );
 };

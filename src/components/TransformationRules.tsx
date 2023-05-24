@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useContext } from "react";
 import { UseQueryResult, useQuery } from "react-query";
 import { ITransformationRule } from "../lib/interfaces/ITransformationRule";
 
@@ -9,20 +9,35 @@ import {
   TextField,
   Button,
 } from "@mui/material";
+import { AppContext } from "../context/AppContext";
 
 type Props = {};
 
 const TransformationRules: FC<Props> = (props: Props) => {
+  const { setTransformationRulesData } = useContext(AppContext);
+
   const { status, error, data }: UseQueryResult<ITransformationRule[], Error> =
     useQuery<ITransformationRule[], Error>("api/transformation-rules");
 
   if (status === "loading") {
-    return <CircularProgress />;
+    return (
+      <Box
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (status === "error") {
     return <Typography>Error</Typography>;
   }
+
+  setTransformationRulesData(data);
 
   return (
     <Box>
