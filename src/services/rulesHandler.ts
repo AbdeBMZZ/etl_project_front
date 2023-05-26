@@ -26,3 +26,11 @@ export const removeRule = async (rule_id: any) => {
 
   return res.data;
 };
+
+export const getHistory = async (rule_id: any) => {
+  const res = await axios.get(
+    `http://127.0.0.1:8000/api/get-history/${rule_id}`
+  );
+
+  return res.data;
+};

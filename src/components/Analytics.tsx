@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -10,7 +10,18 @@ import {
   BarChart,
   Bar,
 } from "recharts";
-import { Typography, makeStyles } from "@material-ui/core";
+import {
+  FormControl,
+  MenuItem,
+  Select,
+  Typography,
+  makeStyles,
+} from "@material-ui/core";
+import { Box, CircularProgress, Divider } from "@mui/material";
+import { ITransformationRule } from "../lib/interfaces/ITransformationRule";
+import { UseQueryResult, useQuery } from "react-query";
+import { getHistory } from "../services/rulesHandler";
+
 interface DataPoint {
   "Transaction ID": number;
   "Transaction Date": string;
@@ -32,82 +43,123 @@ const useStyles = makeStyles(() => ({
 const Analytics: React.FC = () => {
   const classes = useStyles();
 
-  const data: DataPoint[] = [
-    {
-      "Transaction ID": 123456,
-      "Transaction Date": "2022-04-01",
-      Amount: 60.0,
-      "Merchant Name": "Acme Retail",
-    },
-    {
-      "Transaction ID": 123457,
-      "Transaction Date": "2022-04-01",
-      Amount: 85.25,
-      "Merchant Name": "XYZ Gas",
-    },
-    {
-      "Transaction ID": 123458,
-      "Transaction Date": "2022-04-02",
-      Amount: 20.0,
-      "Merchant Name": "Acme Retail",
-    },
-    {
-      "Transaction ID": 123459,
-      "Transaction Date": "2022-04-02",
-      Amount: "---",
-      "Merchant Name": "ABC Pharmacy",
-    },
-    {
-      "Transaction ID": 123460,
-      "Transaction Date": "2022-04-02",
-      Amount: "---",
-      "Merchant Name": "ABC Pharmacy",
-    },
-    {
-      "Transaction ID": 123461,
-      "Transaction Date": "2022-04-03",
-      Amount: 40.0,
-      "Merchant Name": "Acme Retail",
-    },
-    {
-      "Transaction ID": 123461,
-      "Transaction Date": "2022-04-03",
-      Amount: 40.0,
-      "Merchant Name": "---",
-    },
-  ];
+  const [rulesData, setRulesData] = useState<ITransformationRule[]>([]);
 
-  // Prepare chart data by grouping transactions by merchant name
-  const chartData: ChartData[] = data.reduce(
-    (acc: ChartData[], curr: DataPoint) => {
-      const existingIndex = acc.findIndex(
-        (item) => item.name === curr["Merchant Name"]
-      );
-      if (existingIndex !== -1) {
-        acc[existingIndex].value +=
-          typeof curr.Amount === "number" ? curr.Amount : 0;
-      } else {
-        acc.push({
-          name: curr["Merchant Name"],
-          value: typeof curr.Amount === "number" ? curr.Amount : 0,
-        });
-      }
-      return acc;
-    },
-    []
-  );
+  const [chartData, setChartData] = useState<DataPoint[][]>([]);
+
+  const [selectedValue, setSelectedValue] = useState<string | null>(null);
+
+  const {
+    status,
+    error,
+    data: apiRulesData,
+  }: UseQueryResult<ITransformationRule[], Error> = useQuery<
+    ITransformationRule[],
+    Error
+  >("api/transformation-rules");
+
+  useEffect(() => {
+    if (status === "success" && apiRulesData) {
+      console.log(apiRulesData);
+      setRulesData(apiRulesData);
+    }
+  }, [status, error, apiRulesData]);
+
+  const handleHistory = async (rule: ITransformationRule) => {
+    setSelectedValue(rule.name);
+    const res = await getHistory(rule.id);
+    setChartData(res.map((item: any) => item.data));
+  };
 
   return (
     <div className={classes.chartContainer}>
+      <Typography
+        variant="h6"
+        style={{
+          textAlign: "center",
+        }}
+      >
+        Merchant-wise Transactions
+      </Typography>
+
+      <Divider light />
+
+      <Box
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "10vh",
+        }}
+      >
+        <Typography
+          variant="body1"
+          style={{
+            flex: 0.6,
+          }}
+        >
+          Select a csv transformation rule to view the transaction history
+        </Typography>
+        <FormControl
+          style={{
+            flex: 0.2,
+          }}
+        >
+          <Select
+            displayEmpty
+            renderValue={() =>
+              selectedValue ? selectedValue : "Select an option"
+            }
+            labelId="select-label"
+            onChange={(e) => {
+              handleHistory(e.target.value);
+            }}
+          >
+            {rulesData.map((item, index) => (
+              <MenuItem key={index} value={item}>
+                {item.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+
       <Typography variant="h6">Merchant-wise Transactions</Typography>
-      <BarChart width={500} height={300} data={chartData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Bar dataKey="value" fill="#8884d8" />
-      </BarChart>
+
+      <Box
+        style={{
+          marginTop: "2rem",
+          display: "grid",
+          placeItems: "center",
+          height: "50vh",
+          gridTemplateColumns: "repeat(3, 1fr)",
+        }}
+      >
+        {chartData.length > 0 &&
+          chartData.map((chart, index) => (
+            <div key={index}>
+              <Typography variant="h6">{chart["Merchant Name"]}</Typography>
+              <BarChart
+                width={400}
+                height={300}
+                data={chart}
+                margin={{
+                  top: 5,
+                  right: 30,
+                  left: 20,
+                  bottom: 5,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="Transaction Date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="Amount" fill="#8884d8" />
+              </BarChart>
+            </div>
+          ))}
+      </Box>
     </div>
   );
 };

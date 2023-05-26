@@ -239,19 +239,6 @@ const FileUploader: FC<Props> = (props) => {
           }}
         >
           <DataTable data={data} />
-          <Button
-            variant="contained"
-            color="primary"
-            component="span"
-            className={classes.uploadButton}
-            style={{
-              marginBottom: "10px",
-              marginTop: "10px",
-              marginLeft: "10px",
-            }}
-          >
-            Download CSV
-          </Button>
         </Box>
       )}
     </Box>
